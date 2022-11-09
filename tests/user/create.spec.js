@@ -1,16 +1,15 @@
 import UserHelper from "../../helpers/user.helper";
 import {expect} from 'chai'
 import faker from 'faker'
-import { getEndpoint } from "../../helpers/common.helper";
 
-describe('User', function () {
-    describe.only('User creation', function () {
-        let userHelper = new UserHelper()
-        let response
+describe('Create new user', function () {
+    const userHelper = new UserHelper()
+    let response
+
+    describe('All fields filled with valid data', function () {
 
         before(async function () {
             response = await userHelper.create(faker.company.companyName(), faker.name.firstName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
-            //console.log(userHelper.response.body)
         })
 
         it('Successful POST request', function () {
@@ -18,36 +17,153 @@ describe('User', function () {
         })
 
         it('Response status code is 201', function () {
-            expect(userHelper.response.status).to.eq(201)
+            expect(response.status).to.eq(201)
+        })
+
+        it('Response has headers', function () {
+            expect(response.headers).not.to.be.undefined
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body is object', function () {
+            expect(response.body).to.be.a('object')
+        })
+
+        it('Response body contains success message', function () {
+            expect(response.body.message).to.eq('User created successfully. Please check your email and verify it')
         })
     })
 
-    describe('User email verification', function () {
-        let userHelper = new UserHelper()
-
-        let companyName = faker.company.companyName()
-        let firstName = faker.name.firstName()
-        let lastName = faker.name.lastName()
-        let email = faker.internet.email()
-        let password = faker.internet.password()
-
-        let response, endPoint
+    describe('User duplicate', function () {
+        const companyName = faker.company.companyName()
+        const firstName = faker.name.firstName()
+        const lastName = faker.name.lastName()
+        const email = faker.internet.email()
+        const password = faker.internet.password()
 
         before(async function () {
-            await userHelper.create(companyName, firstName, lastName, email, password)                  //register new user
-            await userHelper.sendEmail(email)                                                           //send user's email to .../email/search
-            response = userHelper.response.body                                                         //receive response
-            endPoint = getEndpoint(response)                                                            //get Endpoint by function from common helper
-            await userHelper.sendEndpoint(endPoint)                                                     //send empty request to endpoint
-            response = userHelper.response.body                                                         //overwrite response
-            await userHelper.logIn(email, password)                                                     //log in with new user
-            response = userHelper.response.body                                                         //overwrite response
-            process.env['TOKEN'] = response.payload.token                                               //put the token in the environment
-            //console.log(process.env.TOKEN)
+            await userHelper.create(companyName, firstName, lastName, email, password)
+            response = await userHelper.create(companyName, firstName, lastName, email, password)
         })
 
-        it('response status code is 200', function () {
-            expect(userHelper.response.status).to.eq(200)
+        it('Unsuccessful POST request', function () {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 409', function () {
+            expect(response.status).to.eq(409)
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', function () {
+            expect(response.body.message).to.eq('User with this e-mail exists')
+        })
+    })
+
+    describe('Not all required fields are filled (any fields except first)', function () {
+
+        before(async function () {
+            response = await userHelper.create(faker.company.companyName(), '', faker.name.lastName(), faker.internet.email(), faker.internet.password())
+        })
+
+        it('Unsuccessful POST request', function () {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 404', function () {
+            expect(response.status).to.eq(404)
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', function () {
+            expect(response.body.message).to.eq('User was not created')
+        })
+
+        it('Response body contains payload which is a string', function () {
+            expect(response.body.payload).to.be.a('string')
+        })
+    })
+
+    describe('Not all required fields are filled (first field)', function () {
+
+        before(async function () {
+            response = await userHelper.create('', faker.name.firstName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
+        })
+
+        it('Unsuccessful POST request', function () {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 404', function () {
+            expect(response.status).to.eq(404)
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', function () {
+            expect(response.body.message).to.eq('User was not created')
+        })
+
+        it('Response body contains payload which is a string', function () {
+            expect(response.body.payload).to.be.a('string')
+        })
+    })
+
+    describe('No field is filled', function () {
+
+        before(async function () {
+            response = await userHelper.create('', '', '', '', '')
+        })
+
+        it('Unsuccessful POST request', function () {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 400', function () {
+            expect(response.status).to.eq(400)
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', function () {
+            expect(response.body.message).to.eq('Wrong password format')
+        })
+    })
+
+    describe.only('Request body is an empty JSON', function () {
+
+        before(async function () {
+            response = await userHelper.emptyBody()
+            console.log(response.body)
+        })
+
+        it('Unsuccessful POST request', function () {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 400', function () {
+            expect(response.status).to.eq(400)
+        })
+
+        it('Response has body', function (){
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', function () {
+            expect(response.body.message).to.eq('Wrong password format')
         })
     })
 })
