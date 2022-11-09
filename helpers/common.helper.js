@@ -1,5 +1,4 @@
-function getEndpoint(response) {
+function getEndPoint(response) {
     return response.payload.items[0].message.split('\n')[4].split('https://clientbase.us')[1]
 }
-export { getEndpoint }
-
+export { getEndPoint }

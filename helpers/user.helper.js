@@ -17,9 +17,9 @@ export default class UserHelper {
         return this.response
     }
 
-    async sendEndpoint(link) {
+    async sendEndPoint(endPoint) {
         this.response = await supertest(process.env.BASE_URL)
-            .get(link)
+            .get(endPoint)
         return this.response
     }
 
@@ -27,6 +27,12 @@ export default class UserHelper {
         this.response = await supertest(process.env.BASE_URL)
             .post('/v5/user/login')
             .send({ email, password })
+        return this.response
+    }
+
+    async emptyBody() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user')
         return this.response
     }
 
