@@ -5,6 +5,7 @@ import {expect} from "chai";
 
 describe('User email verification', function () {
     const userHelper = new UserHelper()
+    let responseEmailSearch
 
     describe('All fields filled with valid data', function () {
 
@@ -14,16 +15,13 @@ describe('User email verification', function () {
         const email = faker.internet.email()
         const password = faker.internet.password()
 
-        let responseEmailSearch, responseVerifyEmail, endPoint
+        let responseVerifyEmail, endPoint
 
         before(async function () {
             await userHelper.create(companyName, firstName, lastName, email, password)
             responseEmailSearch = await userHelper.sendEmail(email)
             endPoint = getEndPoint(responseEmailSearch.body)
             responseVerifyEmail = await userHelper.sendEndPoint(endPoint)
-            // response = (await userHelper.logIn(email, password)).body
-            // process.env['TOKEN'] = response.payload.token
-            // console.log(response1.body, response2.body)
         })
 
         //---------------------------------Tests for Email Search:---------------------------------//
@@ -75,14 +73,11 @@ describe('User email verification', function () {
         })
     })
 
-    describe('Not all required fields are filled', function () {
-
-        let responseEmailSearch
+    describe('Request has empty body', function () {
 
         before(async function () {
             await userHelper.create(faker.company.companyName(), faker.name.firstName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
-            responseEmailSearch = await userHelper.sendEmail('')
-            console.log(responseEmailSearch.body)
+            responseEmailSearch = await userHelper.sendEmailEmptyBody()
         })
 
         //---------------------------------Tests for Email Search:---------------------------------//
@@ -91,16 +86,8 @@ describe('User email verification', function () {
             expect(responseEmailSearch.status.toString()[0]).to.eq('4')
         })
 
-        it('Response has headers', function () {
-            expect(responseEmailSearch.headers).not.to.be.undefined
-        })
-
         it('Response has body', function () {
             expect(responseEmailSearch.body).not.to.be.undefined
-        })
-
-        it('Response body is object', function () {
-            expect(responseEmailSearch.body).to.be.a('object')
         })
 
         it('Response body contains unsuccess message', function () {
