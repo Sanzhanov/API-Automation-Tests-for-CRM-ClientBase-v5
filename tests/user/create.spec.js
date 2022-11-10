@@ -69,7 +69,7 @@ describe('Create new user', function () {
     describe('Not all required fields are filled (any fields except first)', function () {
 
         before(async function () {
-            response = await userHelper.create(faker.company.companyName(), '', faker.name.lastName(), faker.internet.email(), faker.internet.password())
+            response = await userHelper.createNotAllFields(faker.company.companyName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
         })
 
         it('Unsuccessful POST request', function () {
@@ -96,7 +96,7 @@ describe('Create new user', function () {
     describe('Not all required fields are filled (first field)', function () {
 
         before(async function () {
-            response = await userHelper.create('', faker.name.firstName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
+            response = await userHelper.createNotAllFields2(faker.name.firstName(), faker.name.lastName(), faker.internet.email(), faker.internet.password())
         })
 
         it('Unsuccessful POST request', function () {
@@ -114,40 +114,12 @@ describe('Create new user', function () {
         it('Response body contains unsuccess message', function () {
             expect(response.body.message).to.eq('User was not created')
         })
-
-        it('Response body contains payload which is a string', function () {
-            expect(response.body.payload).to.be.a('string')
-        })
     })
 
-    describe('No field is filled', function () {
+    describe('Request body is an empty', function () {
 
         before(async function () {
-            response = await userHelper.create('', '', '', '', '')
-        })
-
-        it('Unsuccessful POST request', function () {
-            expect(response.status.toString()[0]).to.eq('4')
-        })
-
-        it('Response status code is 400', function () {
-            expect(response.status).to.eq(400)
-        })
-
-        it('Response has body', function (){
-            expect(response.body).not.to.be.undefined
-        })
-
-        it('Response body contains unsuccess message', function () {
-            expect(response.body.message).to.eq('Wrong password format')
-        })
-    })
-
-    describe.only('Request body is an empty JSON', function () {
-
-        before(async function () {
-            response = await userHelper.emptyBody()
-            console.log(response.body)
+            response = await userHelper.createEmptyBody()
         })
 
         it('Unsuccessful POST request', function () {
