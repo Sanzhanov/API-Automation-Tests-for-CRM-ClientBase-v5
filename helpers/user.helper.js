@@ -56,4 +56,81 @@ export default class UserHelper {
             .send({ email, password })
         return this.response
     }
+
+    async logInNotAllFields(email) {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/login')
+            .send({ email })
+        return this.response
+    }
+
+    async logInEmptyBody() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/login')
+            .send({})
+        return this.response
+    }
+
+    async allUsers() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/search')
+            .set('Authorization', `${process.env.TOKEN}`)
+            .send()
+        return this.response
+    }
+
+    async allUsersChangedLimit( limit ) {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/search')
+            .set('Authorization', `${process.env.TOKEN}`)
+            .send({ limit })
+        return this.response
+    }
+
+    async companySales() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/report/companySales')
+            .set('Authorization', `${process.env.TOKEN}`)
+        return this.response
+    }
+
+    async personalSales() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/report/personalSales')
+            .set('Authorization', `${process.env.TOKEN}`)
+        return this.response
+    }
+
+    async resetPassword(email) {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/password/reset/request')
+            .set('Authorization', `${process.env.TOKEN}`)
+            .send({ email })
+        return this.response
+    }
+
+    async resetPasswordEmptyBody() {
+        this.response = await supertest(process.env.BASE_URL)
+            .post('/v5/user/password/reset/request')
+            .set('Authorization', `${process.env.TOKEN}`)
+            .send({})
+        return this.response
+    }
+
+    async authByToken(token) {
+        this.response = await supertest(process.env.BASE_URL)
+            .get('/v5/user/auth')
+            .set('Authorization', token)
+        return this.response
+    }
+
+    async getProfile(userID) {
+        this.response = await supertest(process.env.BASE_URL)
+            .get(`/v5/user/${userID}`)
+            .set('Authorization', `${process.env.TOKEN}`)
+        return this.response
+    }
+
+
+
 }
