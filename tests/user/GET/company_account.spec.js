@@ -3,11 +3,11 @@ import faker from "faker";
 import {expect} from "chai";
 import {changeID} from "../../../helpers/common.helper";
 
-describe('Get user profile', () => {
+describe('Get company account', () => {
     const userHelper = new UserHelper()
-    let response, userID
+    let response, userID, companyID
 
-    describe('By valid user id', () => {
+    describe('By valid company id', () => {
 
         const companyName = faker.company.companyName()
         const firstName = faker.name.firstName()
@@ -17,8 +17,9 @@ describe('Get user profile', () => {
 
         before(async () => {
             await userHelper.create(companyName, firstName, lastName, email, password)
+            companyID = (await userHelper.logIn(email, password)).body.payload.user.companyAccount
             userID = (await userHelper.logIn(email, password)).body.payload.userId
-            response = await userHelper.getProfile(userID)
+            response = await userHelper.getAccount(companyID)
         })
 
         it('Successful GET request', () => {
@@ -38,79 +39,45 @@ describe('Get user profile', () => {
         })
 
         it('Response body contains success message', () => {
-            expect(response.body.message).to.eq('User found')
+            expect(response.body.message).to.eq('Company Account get by id OK')
         })
 
         it('Response body contains payload which is an object', () => {
             expect(response.body.payload).to.be.an('object')
         })
 
-        it('Response body contains user ID', () => {
-            expect(response.body.payload._id).to.eq(userID)
-        })
-
-        it('User has role new or verified', () => {
-            expect(response.body.payload.roles[0]).to.be.oneOf(['new', 'verified'])
-        })
-
-        it('User has role new if user\'s email isn\'t confirmed and role verified - otherwise', () => {
-            if (response.body.payload.emailConfirmation.confirmed === true) expect(response.body.payload.roles[0]).to.eq('verified')
-            else expect(response.body.payload.roles[0]).to.eq('new')
+        it('Response body contains initial company id', () => {
+            expect(response.body.payload._id).to.eq(companyID)
         });
 
-        it('Response body contains company name', () => {
-            expect(response.body.payload.companyAccount.companyName).to.eq(companyName)
+        it('Response body contains initial company name', () => {
+            expect(response.body.payload.companyName).to.eq(companyName)
         });
 
-        it('Response body contains initial user email', () => {
-            expect(response.body.payload.email).to.eq(email.toLowerCase());
+        it('Response contains correct owner id', () => {
+            expect(response.body.payload.owner._id).to.eq(userID)
         });
 
-        it('Response body contains initial user name', () => {
-            expect(response.body.payload.name).to.eq(`${firstName} ${lastName}`)
+        it('Response contains correct owner name',  () => {
+            expect(response.body.payload.owner.name).to.eq(`${firstName} ${lastName}`)
+        });
+
+        it('User email and company email are the same',  () => {
+            expect(response.body.payload.email).to.eq(email.toLowerCase())
         });
     })
 
-    describe('By non-existent user ID, but in a valid format', () => {
+    describe('By non-existent company ID, but in a valid format', () => {
 
         const email = faker.internet.email()
         const password = faker.internet.password()
-        let nonExistentUserID
+        let nonExistentCompanyID
 
         before(async() => {
             await userHelper.create(faker.company.companyName(), faker.name.firstName(), faker.name.lastName(), email, password)
-            userID = (await userHelper.logIn(email, password)).body.payload.userId
-            nonExistentUserID = changeID(userID)
-            response = await userHelper.getProfile(nonExistentUserID)
-        })
-
-        it('Unsuccessful GET request', () => {
-            expect(response.status.toString()[0]).to.eq('4')
-        })
-
-        it('Response status code is 404', () => {
-            expect(response.status).to.eq(404)
-        })
-
-        it('Response has headers', () => {
-            expect(response.headers).not.to.be.undefined
-        })
-
-        it('Response has body', () => {
-            expect(response.body).not.to.be.undefined
-        })
-
-        it('Response body contains unsuccess message', () => {
-            expect(response.body.message).to.eq('No User for provided id')
-        })
-    })
-
-    describe('By invalid user id', () => {
-
-        before(async() => {
-            const invalidID = faker.datatype.uuid()
-
-            response = await userHelper.getProfile(invalidID)
+            companyID = (await userHelper.logIn(email, password)).body.payload.user.companyAccount
+            nonExistentCompanyID = changeID(companyID)
+            response = await userHelper.getAccount(nonExistentCompanyID)
         })
 
         it('Unsuccessful GET request', () => {
@@ -130,7 +97,40 @@ describe('Get user profile', () => {
         })
 
         it('Response body contains unsuccess message', () => {
-            expect(response.body.message).to.eq('User get by ID. Error')
+            expect(response.body.message).to.eq('Company Account get error')
+        })
+
+        it('Response body contains payload which is a string', () => {
+            expect(response.body.payload).to.be.a('string')
+        })
+    })
+
+    describe('By invalid company id', () => {
+
+        before(async() => {
+            const invalidID = faker.datatype.uuid()
+
+            response = await userHelper.getAccount(invalidID)
+        })
+
+        it('Unsuccessful GET request', () => {
+            expect(response.status.toString()[0]).to.eq('4')
+        })
+
+        it('Response status code is 400', () => {
+            expect(response.status).to.eq(400)
+        })
+
+        it('Response has headers', () => {
+            expect(response.headers).not.to.be.undefined
+        })
+
+        it('Response has body', () => {
+            expect(response.body).not.to.be.undefined
+        })
+
+        it('Response body contains unsuccess message', () => {
+            expect(response.body.message).to.eq('Company Account get error')
         })
 
         it('Response body contains payload which is a string', () => {
