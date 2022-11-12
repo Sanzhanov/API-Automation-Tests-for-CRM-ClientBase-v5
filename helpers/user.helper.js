@@ -162,6 +162,26 @@ export default class UserHelper {
         return this.response
     }
 
+    async updateProfileTokenPart(token, firstName, lastName, email) {
+        this.response = await supertest(process.env.BASE_URL)
+            .patch(`/v5/user`)
+            .set('Authorization', token)
+            .send(({ firstName, lastName, email }))
+        return this.response
+    }
 
+    async updateAccount(companyID, companyName) {
+        this.response = await supertest(process.env.BASE_URL)
+            .patch(`/v5/company/${companyID}`)
+            .set('Authorization', `${process.env.TOKEN}`)
+            .send(({ companyName }))
+        return this.response
+    }
 
+    async deleteUser(userID) {
+        this.response = await supertest(process.env.BASE_URL)
+            .delete(`/v5/user/${userID}`)
+            .set('Authorization', `${process.env.TOKEN}`)
+        return this.response
+    }
 }
